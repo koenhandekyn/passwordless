@@ -4,9 +4,12 @@
   <br />
 </p>
 
-[![Travis](https://travis-ci.org/mikker/passwordless.svg?branch=master)](https://travis-ci.org/mikker/passwordless) [![Rubygems](https://img.shields.io/gem/v/passwordless.svg)](https://rubygems.org/gems/passwordless) [![codecov](https://codecov.io/gh/mikker/passwordless/branch/master/graph/badge.svg)](https://codecov.io/gh/mikker/passwordless) [![Ruby Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://github.com/testdouble/standard)
+[![Travis](https://travis-ci.org/koenhandekyn/passwordless.svg?branch=master)](https://travis-ci.org/koenhandekyn/passwordless) [![Rubygems](https://img.shields.io/gem/v/passwordless.svg)](https://rubygems.org/gems/passwordless) [![codecov](https://codecov.io/gh/koenhandekyn/passwordless/branch/master/graph/badge.svg)](https://codecov.io/gh/koenhandekyn/passwordless) [![Ruby Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://github.com/testdouble/standard)
 
 Add authentication to your Rails app without all the icky-ness of passwords.
+
+Based on https://github.com/mikker/passwordless. Motivation of the fork: with the original implementation, it was not trivial to implement authentiation in a multi-tenant based system.
+This implementation simplifies the model, making some elements more explicit and with that allowing for multi-tenancy.
 
 ---
 
@@ -58,7 +61,18 @@ Then specify which field on your `User` record is the email field with:
 class User < ApplicationRecord
   validates :email, presence: true, uniqueness: { case_sensitive: false }
 
-  passwordless_with :email # <-- here!
+  passwordless
+
+  def self.fetch_resource_for_passwordless(params)
+    find_by(email: params[:passwordless][:email])
+
+    # # auto-create users
+    # find_or_create_by(email: params[:passwordless][:email])
+
+    # # multi tenant example
+    # tenant = Tenant.find_by(tenant_uuid: params[:passwordless][:tenant_uuid])
+    # find_or_create_by(email: params[:passwordless][:email], tenant: tenant)
+  end
 end
 ```
 
@@ -131,7 +145,7 @@ If you'd like to let the user know whether or not a record was found, `@resource
 <% end %>
 ```
 
-See [the bundled views](https://github.com/mikker/passwordless/tree/master/app/views/passwordless).
+See [the bundled views](https://github.com/koenhandekyn/passwordless/tree/master/app/views/passwordless).
 
 ### Registering new users
 

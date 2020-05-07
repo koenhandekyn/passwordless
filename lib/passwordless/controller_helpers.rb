@@ -23,39 +23,6 @@ module Passwordless
       end
     end
 
-    # @deprecated Use {ControllerHelpers#authenticate_by_session}
-    # Authenticate a record using cookies. Looks for a cookie corresponding to
-    # the _authenticatable_class_. If found try to find it in the database.
-    # @param authenticatable_class [ActiveRecord::Base] any Model connected to
-    #   passwordless. (e.g - _User_ or _Admin_).
-    # @return [ActiveRecord::Base|nil] an instance of Model found by id stored
-    #   in cookies.encrypted or nil if nothing is found.
-    # @see ModelHelpers#passwordless_with
-    def authenticate_by_cookie(authenticatable_class)
-      key = cookie_name(authenticatable_class)
-      authenticatable_id = cookies.encrypted[key]
-
-      return authenticatable_class.find_by(id: authenticatable_id) if authenticatable_id
-
-      authenticate_by_session(authenticatable_class)
-    end
-    deprecate :authenticate_by_cookie, deprecator: CookieDeprecation
-
-    def upgrade_passwordless_cookie(authenticatable_class)
-      key = cookie_name(authenticatable_class)
-
-      return unless (authenticatable_id = cookies.encrypted[key])
-      cookies.encrypted.permanent[key] = {value: nil}
-      cookies.delete(key)
-
-      return unless (record = authenticatable_class.find_by(id: authenticatable_id))
-      new_session = build_passwordless_session(record).tap { |s| s.save! }
-
-      sign_in new_session
-
-      new_session.authenticatable
-    end
-
     # Authenticate a record using the session. Looks for a session key corresponding to
     # the _authenticatable_class_. If found try to find it in the database.
     # @param authenticatable_class [ActiveRecord::Base] any Model connected to
@@ -101,12 +68,6 @@ module Passwordless
     # @param (see #authenticate_by_session)
     # @return [boolean] Always true
     def sign_out(authenticatable_class)
-      # Deprecated - cookies
-      key = cookie_name(authenticatable_class)
-      cookies.encrypted.permanent[key] = {value: nil}
-      cookies.delete(key)
-      # /deprecated
-
       reset_session
       true
     end
@@ -144,11 +105,6 @@ module Passwordless
       end
 
       authenticatable_class.base_class.to_s.parameterize
-    end
-
-    # Deprecated
-    def cookie_name(authenticatable_class)
-      :"#{authenticatable_class.base_class.to_s.underscore}_id"
     end
   end
 end

@@ -8,10 +8,9 @@ module Passwordless
     include ControllerHelpers
 
     # get '/sign_in'
-    #   Assigns an email_field and new Session to be used by new view.
+    #   Assigns an identifiers and new Session to be used by new view.
     #   renders sessions/new.html.erb.
     def new
-      @email_field = email_field
       @session = Session.new
     end
 
@@ -24,11 +23,7 @@ module Passwordless
       session = build_passwordless_session(@resource)
 
       if session.save
-        if Passwordless.after_session_save.arity == 2
-          Passwordless.after_session_save.call(session, request)
-        else
-          Passwordless.after_session_save.call(session)
-        end
+        Passwordless.after_session_save.call(session, request)
       end
 
       render
@@ -100,26 +95,14 @@ module Passwordless
       authenticatable_classname.constantize
     end
 
-    def email_field
-      authenticatable_class.passwordless_email_field
-    end
-
     def find_authenticatable
-      email = params[:passwordless][email_field].downcase
-
-      if authenticatable_class.respond_to?(:fetch_resource_for_passwordless)
-        authenticatable_class.fetch_resource_for_passwordless(email)
-      else
-        authenticatable_class.where(
-          "lower(#{email_field}) = ?", params[:passwordless][email_field].downcase
-        ).first
-      end
+      authenticatable_class.fetch_resource_for_passwordless(params)
     end
 
     def passwordless_session
       @passwordless_session ||= Session.find_by!(
         authenticatable_type: authenticatable_classname,
-        token: params[:token]
+        token: params[:token],
       )
     end
   end

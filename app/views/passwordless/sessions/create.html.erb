@@ -1,1 +1,5 @@
-<p><%= I18n.t('passwordless.sessions.create.email_sent_if_record_found') %></p>
+<% if @resource.present? %>
+  <p><%= I18n.t("passwordless.sessions.create.success") %></p>
+<% else %>
+  <p><%= I18n.t("passwordless.sessions.create.resource_not_found") %></p>
+<% end %>
