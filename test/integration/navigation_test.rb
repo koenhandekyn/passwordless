@@ -41,12 +41,12 @@ class NavigationTest < ActionDispatch::IntegrationTest
     assert_equal alice.email, email.to.first
 
     # Expect mail body to include session link
-    token_sign_in_path = "/users/sign_in/#{user_session.token}"
-    assert email.body.to_s.include?(token_sign_in_path)
+    token_session_start_path = "/users/sign_in/#{user_session.token}"
+    assert email.body.to_s.include?(token_session_start_path)
 
     # Follow link, Expect redirect to /secret path which has been unsuccessfully
     # accessed in the beginning.
-    get token_sign_in_path
+    get token_session_start_path
     assert_equal 302, status
     follow_redirect!
 

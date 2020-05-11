@@ -7,27 +7,27 @@ module Passwordless
   class SessionsController < ApplicationController
     include ControllerHelpers
 
-    # get '/sign_in'
-    #   Assigns an identifiers and new Session to be used by new view.
-    #   renders sessions/new.html.erb.
-    def new
-      @session = Session.new
-    end
+    # # get '/sign_in'
+    # #   Assigns an identifier and new Session to be used by new view.
+    # #   renders sessions/new.html.erb.
+    # def new
+    #   @session = Session.new
+    # end
 
-    # post '/sign_in'
-    #   Creates a new Session record then sends the magic link
-    #   renders sessions/create.html.erb.
-    # @see Mailer#magic_link Mailer#magic_link
-    def create
-      @resource = find_authenticatable
-      session = build_passwordless_session(@resource)
+    # # post '/sign_in'
+    # #   Creates a new Session record then sends the magic link
+    # #   renders sessions/create.html.erb.
+    # # @see Mailer#magic_link Mailer#magic_link
+    # def create
+    #   @resource = find_authenticatable
+    #   session = build_passwordless_session(@resource)
 
-      if session.save
-        Passwordless.after_session_save.call(session, request)
-      end
+    #   if session.save
+    #     Passwordless.after_session_save.call(session, request)
+    #   end
 
-      render
-    end
+    #   render
+    # end
 
     # get '/sign_in/:token'
     #   Looks up session record by provided token. Signs in user if a match
@@ -42,10 +42,16 @@ module Passwordless
 
       redirect_to passwordless_success_redirect_path
     rescue Errors::TokenAlreadyClaimedError
+      sign_out authenticatable_class # log out for added security
       flash[:error] = I18n.t(".passwordless.sessions.create.token_claimed")
       redirect_to passwordless_failure_redirect_path
     rescue Errors::SessionTimedOutError
+      sign_out authenticatable_class # log out for added security
       flash[:error] = I18n.t(".passwordless.sessions.create.session_expired")
+      redirect_to passwordless_failure_redirect_path
+    rescue ActiveRecord::RecordNotFound
+      sign_out authenticatable_class # log out for added security
+      flash[:error] = I18n.t(".passwordless.sessions.create.token_not_found")
       redirect_to passwordless_failure_redirect_path
     end
 

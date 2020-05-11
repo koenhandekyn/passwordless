@@ -216,7 +216,7 @@ session = Passwordless::Session.new({
   remote_addr: 'unknown',
 })
 session.save!
-@magic_link = send(Passwordless.mounted_as).token_sign_in_url(session.token)
+@magic_link = send(Passwordless.mounted_as).token_session_start_url(session.token)
 ```
 
 You can further customize this URL by specifying the destination path to be redirected to after the user has logged in. You can do this by adding the `destination_path` query parameter to the end of the URL. For example

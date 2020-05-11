@@ -12,7 +12,7 @@ module Passwordless
 
       @magic_link =
         send(Passwordless.mounted_as)
-          .token_sign_in_url(session.token)
+          .token_session_start_url(session.token)
 
       email =
         @session
