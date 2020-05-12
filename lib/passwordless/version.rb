@@ -1,5 +1,5 @@
 # frozen_string_literal: true
 
 module Passwordless
-  VERSION = "0.9.1" # :nodoc:
+  VERSION = "0.9.2" # :nodoc:
 end
